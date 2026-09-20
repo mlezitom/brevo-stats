@@ -4,8 +4,14 @@ namespace BrevoStats;
 
 class ReportFormatter
 {
-    public function format(string $weekStart, string $weekEnd, array $current, ?array $previous): string
-    {
+    public function format(
+        string $weekStart,
+        string $weekEnd,
+        array $current,
+        ?array $previous,
+        ?array $emailPlan = null,
+        ?int $lowCreditThreshold = null,
+    ): string {
         return "
 Brevo Weekly Transactional Email Report
 Period: {$weekStart} → {$weekEnd}
@@ -23,8 +29,28 @@ Blocked:      {$current['blocked']}
 Spam reports: {$current['spam_reports']}
 
 ----------------------------------
+" . $this->formatCredits($emailPlan, $lowCreditThreshold) . "
+----------------------------------
 Stored in database for long-term trend analysis.
 ";
+    }
+
+    private function formatCredits(?array $emailPlan, ?int $lowCreditThreshold): string
+    {
+        if ($emailPlan === null) {
+            return "Account credits: unavailable\n";
+        }
+
+        $credits = $emailPlan['credits'];
+        $type    = $emailPlan['type'];
+
+        $line = "Account credits ({$type}): {$credits}\n";
+
+        if ($lowCreditThreshold !== null && $credits <= $lowCreditThreshold) {
+            $line .= "⚠ LOW CREDIT WARNING: remaining credits are at or below the threshold of {$lowCreditThreshold}.\n";
+        }
+
+        return $line;
     }
 
     private function trend(int|string|null $current, int|string|null $previous): string

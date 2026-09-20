@@ -16,6 +16,11 @@ $config = [
 		'from' => null,
 		'fromName' => 'Brevo Weekly Report',
 	],
+	'brevo' => [
+		// Include remaining pay-as-you-go/plan credits in the report, and flag it
+		// when they drop at or below this number.
+		'lowCreditThreshold' => 1000,
+	],
 	'mailer' => [
 		// 'brevo' sends through the Brevo transactional API, 'smtp' sends via SMTP
 		// (e.g. Mailpit on local dev). Override in config.local.php per environment.

@@ -2,6 +2,7 @@
 
 require __DIR__ . '/vendor/autoload.php';
 
+use BrevoStats\BrevoAccountClient;
 use BrevoStats\BrevoStatsClient;
 use BrevoStats\Mailer\MailerFactory;
 use BrevoStats\ReportFormatter;
@@ -27,7 +28,20 @@ $repository->saveWeek($weekStart, $weekEnd, $data);
 
 [$current, $previous] = $repository->getLastTwoWeeks();
 
-$body = (new ReportFormatter())->format($weekStart, $weekEnd, $current, $previous);
+try {
+    $emailPlan = (new BrevoAccountClient($config['brevoApiKey']))->getEmailPlan();
+} catch (\Throwable $e) {
+    $emailPlan = null;
+}
+
+$body = (new ReportFormatter())->format(
+    $weekStart,
+    $weekEnd,
+    $current,
+    $previous,
+    $emailPlan,
+    $config['brevo']['lowCreditThreshold']
+);
 
 $mailer = MailerFactory::create($config);
 $mailer->send(
