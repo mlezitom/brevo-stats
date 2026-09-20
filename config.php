@@ -21,6 +21,10 @@ $config = [
 		// when they drop at or below this number.
 		'lowCreditThreshold' => 1000,
 	],
+	'report' => [
+		// How many past weeks to show in the trend table.
+		'trendWeeks' => 12,
+	],
 	'mailer' => [
 		// 'brevo' sends through the Brevo transactional API, 'smtp' sends via SMTP
 		// (e.g. Mailpit on local dev). Override in config.local.php per environment.

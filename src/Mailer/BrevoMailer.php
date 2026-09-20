@@ -10,8 +10,14 @@ class BrevoMailer implements MailerInterface
     {
     }
 
-    public function send(string $toEmail, string $fromEmail, string $fromName, string $subject, string $body): void
-    {
+    public function send(
+        string $toEmail,
+        string $fromEmail,
+        string $fromName,
+        string $subject,
+        string $htmlBody,
+        ?string $textBody = null,
+    ): void {
         $payload = [
             'sender' => [
                 'name'  => $fromName,
@@ -21,8 +27,12 @@ class BrevoMailer implements MailerInterface
                 ['email' => $toEmail],
             ],
             'subject'     => $subject,
-            'textContent' => $body,
+            'htmlContent' => $htmlBody,
         ];
+
+        if ($textBody !== null) {
+            $payload['textContent'] = $textBody;
+        }
 
         $ch = curl_init('https://api.brevo.com/v3/smtp/email');
         curl_setopt_array($ch, [

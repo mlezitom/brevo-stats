@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin:0;padding:0;background-color:#f4f5f7;font-family:Arial,Helvetica,sans-serif;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f5f7;padding:24px 0;">
+<tr><td align="center">
+<table role="presentation" width="680" cellpadding="0" cellspacing="0" style="background-color:#ffffff;border-radius:8px;overflow:hidden;">
+<tr>
+<td style="background-color:#0b5fff;padding:20px 28px;">
+<h1 style="margin:0;color:#ffffff;font-size:20px;">Brevo Weekly Transactional Email Report</h1>
+{% if current %}
+<p style="margin:4px 0 0;color:#dce7ff;font-size:13px;">Period: {{ current.week_start }} &rarr; {{ current.week_end }}</p>
+{% endif %}
+</td>
+</tr>
+<tr>
+<td style="padding:20px 28px;">
+
+{% if emailPlan %}
+<div style="padding:10px 14px;background-color:{{ isLowCredit ? '#fff5f5' : '#f1f8f3' }};border:1px solid {{ isLowCredit ? '#ffa8a8' : '#b2f2bb' }};border-radius:6px;font-size:13px;color:{{ isLowCredit ? '#c92a2a' : '#2b8a3e' }};">
+Account credits ({{ emailPlan.type }}): <strong>{{ emailPlan.credits }}</strong>
+{% if isLowCredit %}<br>&#9888; Low credit warning &mdash; at or below threshold of {{ lowCreditThreshold }}.{% endif %}
+</div>
+{% else %}
+<div style="padding:10px 14px;background-color:#f1f3f5;border-radius:6px;font-size:13px;color:#52606d;">Account credits: unavailable</div>
+{% endif %}
+
+<h2 style="font-size:15px;color:#1f2933;margin:24px 0 10px;">Last {{ weekCount }} weeks</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
+<thead>
+<tr style="background-color:#f1f3f5;">
+<th style="text-align:left;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Week</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Sent</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Delivered</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Opens</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Clicks</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Bounces</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Blocked</th>
+<th style="text-align:right;padding:8px;border-bottom:2px solid #e1e4e8;color:#52606d;">Spam</th>
+</tr>
+</thead>
+<tbody>
+{% for week in weeks %}
+<tr style="background-color:{{ week.isCurrent ? '#eef4ff' : '#ffffff' }};">
+<td style="text-align:left;padding:8px;border-bottom:1px solid #eef0f2;color:#1f2933;">{{ week.weekStart }} &rarr; {{ week.weekEnd }}</td>
+{% for metric in [week.requests, week.delivered, week.opens, week.clicks] %}
+<td style="text-align:right;padding:8px;border-bottom:1px solid #eef0f2;color:#1f2933;">
+{{ metric.value }}
+{% if metric.trend %}
+<span style="font-size:11px;color:{{ metric.trend.direction == 'up' ? '#2f9e44' : '#e03131' }};">{{ metric.trend.direction == 'up' ? '&#9650;'|raw : '&#9660;'|raw }} {{ metric.trend.pct }}%</span>
+{% endif %}
+</td>
+{% endfor %}
+<td style="text-align:right;padding:8px;border-bottom:1px solid #eef0f2;color:#1f2933;">{{ week.bounces }}</td>
+<td style="text-align:right;padding:8px;border-bottom:1px solid #eef0f2;color:#1f2933;">{{ week.blocked }}</td>
+<td style="text-align:right;padding:8px;border-bottom:1px solid #eef0f2;color:#1f2933;">{{ week.spam }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+<p style="font-size:11px;color:#9aa5b1;margin-top:20px;">Stored in database for long-term trend analysis.</p>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

@@ -26,7 +26,7 @@ $data = $statsClient->getAggregatedReport($weekStart, $weekEnd);
 $repository = new WeeklyStatsRepository($db);
 $repository->saveWeek($weekStart, $weekEnd, $data);
 
-[$current, $previous] = $repository->getLastTwoWeeks();
+$weeks = $repository->getLastWeeks($config['report']['trendWeeks']);
 
 try {
     $emailPlan = (new BrevoAccountClient($config['brevoApiKey']))->getEmailPlan();
@@ -34,14 +34,9 @@ try {
     $emailPlan = null;
 }
 
-$body = (new ReportFormatter())->format(
-    $weekStart,
-    $weekEnd,
-    $current,
-    $previous,
-    $emailPlan,
-    $config['brevo']['lowCreditThreshold']
-);
+$formatter = new ReportFormatter();
+$htmlBody  = $formatter->formatHtml($weeks, $emailPlan, $config['brevo']['lowCreditThreshold']);
+$textBody  = $formatter->formatText($weeks, $emailPlan, $config['brevo']['lowCreditThreshold']);
 
 $mailer = MailerFactory::create($config);
 $mailer->send(
@@ -49,7 +44,8 @@ $mailer->send(
     $config['email']['from'],
     $config['email']['fromName'],
     'Weekly Brevo Usage Report (with Trends)',
-    $body
+    $htmlBody,
+    $textBody
 );
 
 echo "Weekly report with trends sent.\n";

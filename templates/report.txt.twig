@@ -1,0 +1,29 @@
+Brevo Weekly Transactional Email Report
+{% if current %}Period: {{ current.week_start }} -> {{ current.week_end }}{% endif %}
+
+METRICS (WoW change)
+----------------------------------
+{% if current and currentRow %}
+{% macro trendText(metric) %}{% if metric.trend %}{{ metric.trend.direction == 'up' ? '+' : '' }}{{ metric.trend.pct }}%{% else %}-{% endif %}{% endmacro %}
+{% import _self as helpers %}
+Sent:        {{ current.requests }}   ({{ helpers.trendText(currentRow.requests) }})
+Delivered:   {{ current.delivered }}  ({{ helpers.trendText(currentRow.delivered) }})
+Opens:       {{ current.opens }}      ({{ helpers.trendText(currentRow.opens) }})
+Clicks:      {{ current.clicks }}     ({{ helpers.trendText(currentRow.clicks) }})
+
+Hard bounces: {{ current.hard_bounces }}
+Soft bounces: {{ current.soft_bounces }}
+Blocked:      {{ current.blocked }}
+Spam reports: {{ current.spam_reports }}
+{% endif %}
+
+----------------------------------
+{% if emailPlan %}
+Account credits ({{ emailPlan.type }}): {{ emailPlan.credits }}
+{% if isLowCredit %}LOW CREDIT WARNING: remaining credits are at or below the threshold of {{ lowCreditThreshold }}.
+{% endif %}
+{% else %}
+Account credits: unavailable
+{% endif %}
+----------------------------------
+Stored in database for long-term trend analysis.

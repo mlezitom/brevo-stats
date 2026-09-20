@@ -52,18 +52,18 @@ class WeeklyStatsRepository
     }
 
     /**
-     * Returns [current, previous] rows (most recent first), either may be null.
+     * Returns up to $limit most recent weeks, oldest first (chronological order).
      */
-    public function getLastTwoWeeks(): array
+    public function getLastWeeks(int $limit): array
     {
-        $stmt = $this->db->query("
+        $stmt = $this->db->prepare("
             SELECT * FROM brevo_weekly_stats
             ORDER BY week_start DESC
-            LIMIT 2
+            LIMIT :limit
         ");
+        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
 
-        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        return [$rows[0] ?? null, $rows[1] ?? null];
+        return array_reverse($stmt->fetchAll(PDO::FETCH_ASSOC));
     }
 }

@@ -2,66 +2,87 @@
 
 namespace BrevoStats;
 
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+
 class ReportFormatter
 {
-    public function format(
-        string $weekStart,
-        string $weekEnd,
-        array $current,
-        ?array $previous,
-        ?array $emailPlan = null,
-        ?int $lowCreditThreshold = null,
-    ): string {
-        return "
-Brevo Weekly Transactional Email Report
-Period: {$weekStart} → {$weekEnd}
+    private readonly Environment $twig;
 
-METRICS (WoW change)
-----------------------------------
-Sent:        {$current['requests']}   (" . $this->trend($current['requests'], $previous['requests'] ?? null) . ")
-Delivered:   {$current['delivered']}  (" . $this->trend($current['delivered'], $previous['delivered'] ?? null) . ")
-Opens:       {$current['opens']}      (" . $this->trend($current['opens'], $previous['opens'] ?? null) . ")
-Clicks:      {$current['clicks']}     (" . $this->trend($current['clicks'], $previous['clicks'] ?? null) . ")
-
-Hard bounces: {$current['hard_bounces']}
-Soft bounces: {$current['soft_bounces']}
-Blocked:      {$current['blocked']}
-Spam reports: {$current['spam_reports']}
-
-----------------------------------
-" . $this->formatCredits($emailPlan, $lowCreditThreshold) . "
-----------------------------------
-Stored in database for long-term trend analysis.
-";
-    }
-
-    private function formatCredits(?array $emailPlan, ?int $lowCreditThreshold): string
+    public function __construct()
     {
-        if ($emailPlan === null) {
-            return "Account credits: unavailable\n";
-        }
-
-        $credits = $emailPlan['credits'];
-        $type    = $emailPlan['type'];
-
-        $line = "Account credits ({$type}): {$credits}\n";
-
-        if ($lowCreditThreshold !== null && $credits <= $lowCreditThreshold) {
-            $line .= "⚠ LOW CREDIT WARNING: remaining credits are at or below the threshold of {$lowCreditThreshold}.\n";
-        }
-
-        return $line;
+        $loader = new FilesystemLoader(__DIR__ . '/../templates');
+        $this->twig = new Environment($loader, [
+            'autoescape' => 'name', // .html.twig gets HTML-escaped, .txt.twig doesn't
+            'strict_variables' => true,
+        ]);
     }
 
-    private function trend(int|string|null $current, int|string|null $previous): string
+    /**
+     * @param array $weeks Rows from brevo_weekly_stats, oldest first, most recent last.
+     */
+    public function formatHtml(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): string
+    {
+        return $this->twig->render('report.html.twig', $this->buildContext($weeks, $emailPlan, $lowCreditThreshold));
+    }
+
+    /**
+     * Plain-text fallback for clients that can't render HTML.
+     */
+    public function formatText(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): string
+    {
+        return $this->twig->render('report.txt.twig', $this->buildContext($weeks, $emailPlan, $lowCreditThreshold));
+    }
+
+    private function buildContext(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): array
+    {
+        $current = end($weeks) ?: null;
+
+        $rows = [];
+        foreach ($weeks as $i => $week) {
+            $previous = $weeks[$i - 1] ?? null;
+            $rows[] = [
+                'weekStart' => $week['week_start'],
+                'weekEnd'   => $week['week_end'],
+                'isCurrent' => $week === $current,
+                'requests'  => ['value' => (int) $week['requests'], 'trend' => $this->trend($week['requests'], $previous['requests'] ?? null)],
+                'delivered' => ['value' => (int) $week['delivered'], 'trend' => $this->trend($week['delivered'], $previous['delivered'] ?? null)],
+                'opens'     => ['value' => (int) $week['opens'], 'trend' => $this->trend($week['opens'], $previous['opens'] ?? null)],
+                'clicks'    => ['value' => (int) $week['clicks'], 'trend' => $this->trend($week['clicks'], $previous['clicks'] ?? null)],
+                'bounces'   => (int) $week['hard_bounces'] + (int) $week['soft_bounces'],
+                'blocked'   => (int) $week['blocked'],
+                'spam'      => (int) $week['spam_reports'],
+            ];
+        }
+
+        return [
+            'current'            => $current,
+            'currentRow'         => end($rows) ?: null,
+            'weeks'              => $rows,
+            'weekCount'          => count($rows),
+            'emailPlan'          => $emailPlan,
+            'lowCreditThreshold' => $lowCreditThreshold,
+            'isLowCredit'        => $emailPlan !== null
+                && $lowCreditThreshold !== null
+                && $emailPlan['credits'] <= $lowCreditThreshold,
+        ];
+    }
+
+    /**
+     * @return array{diff: int|float, pct: float, direction: string}|null
+     */
+    private function trend(int|string|null $current, int|string|null $previous): ?array
     {
         if ($previous === null || $previous == 0) {
-            return '—';
+            return null;
         }
 
         $diff = $current - $previous;
-        $pct  = round(($diff / $previous) * 100, 1);
 
-        return ($diff >= 0 ? '↑' : '↓') . " {$pct}%";
+        return [
+            'diff'      => $diff,
+            'pct'       => round(($diff / $previous) * 100, 1),
+            'direction' => $diff >= 0 ? 'up' : 'down',
+        ];
     }
 }

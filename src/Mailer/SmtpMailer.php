@@ -17,8 +17,14 @@ class SmtpMailer implements MailerInterface
     ) {
     }
 
-    public function send(string $toEmail, string $fromEmail, string $fromName, string $subject, string $body): void
-    {
+    public function send(
+        string $toEmail,
+        string $fromEmail,
+        string $fromName,
+        string $subject,
+        string $htmlBody,
+        ?string $textBody = null,
+    ): void {
         $mail = new PHPMailer(true);
 
         try {
@@ -41,8 +47,12 @@ class SmtpMailer implements MailerInterface
             $mail->setFrom($fromEmail, $fromName);
             $mail->addAddress($toEmail);
             $mail->Subject = $subject;
-            $mail->Body = $body;
-            $mail->isHTML(false);
+            $mail->isHTML(true);
+            $mail->Body = $htmlBody;
+
+            if ($textBody !== null) {
+                $mail->AltBody = $textBody;
+            }
 
             $mail->send();
         } catch (PHPMailerException $e) {
