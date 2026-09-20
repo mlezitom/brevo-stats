@@ -1,6 +1,23 @@
 Brevo Weekly Transactional Email Report
 {% if current %}Period: {{ current.week_start }} -> {{ current.week_end }}{% endif %}
 
+----------------------------------
+{% if emailPlan %}
+Account credits ({{ emailPlan.type }}): {{ emailPlan.credits }}
+{% if isLowCredit %}LOW CREDIT WARNING: remaining credits are at or below the threshold of {{ lowCreditThreshold }}.
+{% endif %}
+{% else %}
+Account credits: unavailable
+{% endif %}
+----------------------------------
+{% if months|length > 0 %}
+Monthly usage - emails sent
+{% for month in months %}{{ month.label }}{{ month.isCurrent ? '*' : '' }}: {{ month.requests }}
+{% endfor %}
+* current month, to date
+
+----------------------------------
+{% endif %}
 METRICS (WoW change)
 ----------------------------------
 {% if current and currentRow %}
@@ -17,13 +34,5 @@ Blocked:      {{ current.blocked }}
 Spam reports: {{ current.spam_reports }}
 {% endif %}
 
-----------------------------------
-{% if emailPlan %}
-Account credits ({{ emailPlan.type }}): {{ emailPlan.credits }}
-{% if isLowCredit %}LOW CREDIT WARNING: remaining credits are at or below the threshold of {{ lowCreditThreshold }}.
-{% endif %}
-{% else %}
-Account credits: unavailable
-{% endif %}
 ----------------------------------
 Stored in database for long-term trend analysis.

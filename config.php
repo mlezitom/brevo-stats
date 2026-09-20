@@ -22,8 +22,9 @@ $config = [
 		'lowCreditThreshold' => 1000,
 	],
 	'report' => [
-		// How many past weeks to show in the trend table.
+		// How many past weeks/months to show in the trend tables.
 		'trendWeeks' => 12,
+		'trendMonths' => 12,
 	],
 	'mailer' => [
 		// 'brevo' sends through the Brevo transactional API, 'smtp' sends via SMTP

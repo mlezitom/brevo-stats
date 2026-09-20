@@ -25,7 +25,24 @@ Account credits ({{ emailPlan.type }}): <strong>{{ emailPlan.credits }}</strong>
 <div style="padding:10px 14px;background-color:#f1f3f5;border-radius:6px;font-size:13px;color:#52606d;">Account credits: unavailable</div>
 {% endif %}
 
-<h2 style="font-size:15px;color:#1f2933;margin:24px 0 10px;">Last {{ weekCount }} weeks</h2>
+{% if months|length > 0 %}
+<h2 style="font-size:15px;color:#1f2933;margin:24px 0 10px;">Monthly usage &mdash; emails sent</h2>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:12px;">
+<tr>
+{% for month in months %}
+<td style="text-align:center;padding:6px 4px;background-color:{{ month.isCurrent ? '#eef4ff' : '#f1f3f5' }};color:#52606d;border-bottom:2px solid #e1e4e8;">{{ month.label }}{% if month.isCurrent %}*{% endif %}</td>
+{% endfor %}
+</tr>
+<tr>
+{% for month in months %}
+<td style="text-align:center;padding:8px 4px;background-color:{{ month.isCurrent ? '#eef4ff' : '#ffffff' }};color:#1f2933;font-weight:bold;">{{ month.requests }}</td>
+{% endfor %}
+</tr>
+</table>
+<p style="font-size:11px;color:#9aa5b1;margin-top:6px;">* current month, to date</p>
+{% endif %}
+
+<h2 style="font-size:15px;color:#1f2933;margin:28px 0 10px;">Last {{ weekCount }} weeks</h2>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px;">
 <thead>
 <tr style="background-color:#f1f3f5;">
@@ -58,6 +75,7 @@ Account credits ({{ emailPlan.type }}): <strong>{{ emailPlan.credits }}</strong>
 {% endfor %}
 </tbody>
 </table>
+
 <p style="font-size:11px;color:#9aa5b1;margin-top:20px;">Stored in database for long-term trend analysis.</p>
 </td>
 </tr>

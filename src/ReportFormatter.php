@@ -19,22 +19,23 @@ class ReportFormatter
     }
 
     /**
-     * @param array $weeks Rows from brevo_weekly_stats, oldest first, most recent last.
+     * @param array $weeks  Rows from brevo_weekly_stats, oldest first, most recent last.
+     * @param array $months Rows from brevo_monthly_stats, oldest first, most recent last.
      */
-    public function formatHtml(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): string
+    public function formatHtml(array $weeks, array $months, ?array $emailPlan, ?int $lowCreditThreshold): string
     {
-        return $this->twig->render('report.html.twig', $this->buildContext($weeks, $emailPlan, $lowCreditThreshold));
+        return $this->twig->render('report.html.twig', $this->buildContext($weeks, $months, $emailPlan, $lowCreditThreshold));
     }
 
     /**
      * Plain-text fallback for clients that can't render HTML.
      */
-    public function formatText(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): string
+    public function formatText(array $weeks, array $months, ?array $emailPlan, ?int $lowCreditThreshold): string
     {
-        return $this->twig->render('report.txt.twig', $this->buildContext($weeks, $emailPlan, $lowCreditThreshold));
+        return $this->twig->render('report.txt.twig', $this->buildContext($weeks, $months, $emailPlan, $lowCreditThreshold));
     }
 
-    private function buildContext(array $weeks, ?array $emailPlan, ?int $lowCreditThreshold): array
+    private function buildContext(array $weeks, array $months, ?array $emailPlan, ?int $lowCreditThreshold): array
     {
         $current = end($weeks) ?: null;
 
@@ -55,11 +56,22 @@ class ReportFormatter
             ];
         }
 
+        $currentMonth = end($months) ?: null;
+        $monthRows = [];
+        foreach ($months as $month) {
+            $monthRows[] = [
+                'label'     => (new \DateTimeImmutable($month['month_start']))->format('M Y'),
+                'requests'  => (int) $month['requests'],
+                'isCurrent' => $month === $currentMonth,
+            ];
+        }
+
         return [
             'current'            => $current,
             'currentRow'         => end($rows) ?: null,
             'weeks'              => $rows,
             'weekCount'          => count($rows),
+            'months'             => $monthRows,
             'emailPlan'          => $emailPlan,
             'lowCreditThreshold' => $lowCreditThreshold,
             'isLowCredit'        => $emailPlan !== null
