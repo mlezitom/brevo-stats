@@ -7,8 +7,13 @@
 return [
 	'brevoApiKey' => 'your-brevo-api-key',
 	'db' => [
+		'name' => 'brevo_stats',
 		'username' => 'db-username',
 		'password' => 'db-password',
+	],
+	'email' => [
+		'to' => 'you@example.com',
+		'from' => 'reports@yourdomain.example',
 	],
 
 	// On local dev, point the mailer at Mailpit instead of Brevo:

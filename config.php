@@ -11,8 +11,9 @@ $config = [
 		'password' => null,
 	],
 	'email' => [
-		'to' => 'mlezivat@gmail.com',
-		'from' => 'reports@mleziva.eu',
+		// Recipient and sender addresses are environment-specific — set them in config.local.php.
+		'to' => null,
+		'from' => null,
 		'fromName' => 'Brevo Weekly Report',
 	],
 	'mailer' => [
@@ -39,8 +40,8 @@ if (!is_file($localConfigFile)) {
 
 $config = array_replace_recursive($config, require $localConfigFile);
 
-if (empty($config['brevoApiKey']) || empty($config['db']['username'])) {
-	throw new \RuntimeException('config.local.php is missing required credentials (brevoApiKey / db).');
+if (empty($config['brevoApiKey']) || empty($config['db']['username']) || empty($config['email']['to']) || empty($config['email']['from'])) {
+	throw new \RuntimeException('config.local.php is missing required settings (brevoApiKey / db / email.to / email.from).');
 }
 
 return $config;
