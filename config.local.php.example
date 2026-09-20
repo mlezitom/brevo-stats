@@ -1,0 +1,22 @@
+<?php
+
+// Copy this file to config.local.php on EVERY environment (dev and production).
+// config.local.php holds all real credentials, is merged on top of config.php,
+// and is git-ignored so secrets never end up in version control.
+
+return [
+	'brevoApiKey' => 'your-brevo-api-key',
+	'db' => [
+		'username' => 'db-username',
+		'password' => 'db-password',
+	],
+
+	// On local dev, point the mailer at Mailpit instead of Brevo:
+	'mailer' => [
+		'driver' => 'smtp',
+		'smtp' => [
+			'host' => '127.0.0.1',
+			'port' => 1025, // Mailpit default SMTP port
+		],
+	],
+];
