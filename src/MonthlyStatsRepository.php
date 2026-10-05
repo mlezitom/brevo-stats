@@ -25,6 +25,7 @@ class MonthlyStatsRepository
                 :spam_reports, :unsubscribes
             )
             ON DUPLICATE KEY UPDATE
+                month_end = VALUES(month_end),
                 requests = VALUES(requests),
                 delivered = VALUES(delivered),
                 opens = VALUES(opens),
@@ -51,10 +52,18 @@ class MonthlyStatsRepository
         ]);
     }
 
-    public function monthExists(string $monthStart): bool
+    /**
+     * True if the month is stored and covers at least up to $monthEnd
+     * (a to-date snapshot taken earlier in the month doesn't count).
+     */
+    public function isMonthComplete(string $monthStart, string $monthEnd): bool
     {
-        $stmt = $this->db->prepare('SELECT 1 FROM brevo_monthly_stats WHERE month_start = :month_start LIMIT 1');
-        $stmt->execute([':month_start' => $monthStart]);
+        $stmt = $this->db->prepare('
+            SELECT 1 FROM brevo_monthly_stats
+            WHERE month_start = :month_start AND month_end >= :month_end
+            LIMIT 1
+        ');
+        $stmt->execute([':month_start' => $monthStart, ':month_end' => $monthEnd]);
 
         return (bool) $stmt->fetchColumn();
     }

@@ -30,12 +30,21 @@ $weeklyRepository->saveWeek($weekStart, $weekEnd, $weeklyData);
 
 $weeks = $weeklyRepository->getLastWeeks($config['report']['trendWeeks']);
 
+$monthlyRepository = new MonthlyStatsRepository($db);
+
+// Finalize last month if its stored row is only a partial (to-date) snapshot,
+// e.g. the last weekly run happened a few days before the month ended.
+$previousMonthStart = date('Y-m-01', strtotime('first day of last month'));
+$previousMonthEnd   = date('Y-m-t', strtotime('first day of last month'));
+if (!$monthlyRepository->isMonthComplete($previousMonthStart, $previousMonthEnd)) {
+    $previousMonthData = $statsClient->getAggregatedReport($previousMonthStart, $previousMonthEnd);
+    $monthlyRepository->saveMonth($previousMonthStart, $previousMonthEnd, $previousMonthData);
+}
+
 $monthStart = date('Y-m-01');
 $monthEnd   = date('Y-m-d');
 
 $monthlyData = $statsClient->getAggregatedReport($monthStart, $monthEnd);
-
-$monthlyRepository = new MonthlyStatsRepository($db);
 $monthlyRepository->saveMonth($monthStart, $monthEnd, $monthlyData);
 
 $months = $monthlyRepository->getLastMonths($config['report']['trendMonths']);

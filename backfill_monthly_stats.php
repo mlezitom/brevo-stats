@@ -2,8 +2,9 @@
 
 /**
  * Fills in any missing months in brevo_monthly_stats by pulling historical
- * aggregated stats from Brevo. Only fills gaps — months already stored are
- * left untouched (use --force to refetch them too).
+ * aggregated stats from Brevo. Only fills gaps — months already stored in full
+ * are left untouched (use --force to refetch them too). Past months stored only
+ * as a partial to-date snapshot are refetched.
  *
  * Usage:
  *   php backfill_monthly_stats.php [--months=12] [--force] [--dry-run]
@@ -39,7 +40,7 @@ for ($i = $monthsToCheck - 1; $i >= 0; $i--) {
     $isCurrent  = $i === 0;
     $monthEnd   = $isCurrent ? date('Y-m-d') : $monthDate->format('Y-m-t');
 
-    if (!$force && $repository->monthExists($monthStart)) {
+    if (!$force && $repository->isMonthComplete($monthStart, $monthEnd)) {
         echo "Skipping {$monthStart} (already loaded)\n";
         continue;
     }

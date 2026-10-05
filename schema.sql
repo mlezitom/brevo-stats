@@ -33,5 +33,5 @@ CREATE TABLE IF NOT EXISTS brevo_monthly_stats (
     unsubscribes INT(11) DEFAULT 0,
     created_at TIMESTAMP NULL DEFAULT current_timestamp(),
     PRIMARY KEY (id),
-    UNIQUE KEY uniq_month (month_start, month_end)
+    UNIQUE KEY uniq_month (month_start)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
