@@ -52,7 +52,12 @@ $months = $monthlyRepository->getLastMonths($config['report']['trendMonths']);
 try {
     $emailPlan = (new BrevoAccountClient($config['brevoApiKey']))->getEmailPlan();
 } catch (\Throwable $e) {
+    fwrite(STDERR, '[' . date('c') . '] Could not fetch Brevo account credits: ' . $e->getMessage() . "\n");
     $emailPlan = null;
+}
+
+if ($emailPlan === null) {
+    fwrite(STDERR, '[' . date('c') . "] No email plan available; report will show credits as unavailable.\n");
 }
 
 $formatter = new ReportFormatter();
