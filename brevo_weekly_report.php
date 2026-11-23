@@ -11,6 +11,20 @@ use BrevoStats\WeeklyStatsRepository;
 
 $config = require __DIR__ . '/config.php';
 
+/**
+ * Writes a timestamped line to stderr and to logs/report.log.
+ */
+function logMessage(string $message): void
+{
+    $line = '[' . date('c') . '] ' . $message . "\n";
+    fwrite(STDERR, $line);
+
+    $dir = __DIR__ . '/logs';
+    if (is_dir($dir) || @mkdir($dir, 0750, true)) {
+        @file_put_contents($dir . '/report.log', $line, FILE_APPEND | LOCK_EX);
+    }
+}
+
 $db = new PDO(
     'mysql:host=localhost;dbname=' . $config['db']['name'] . ';charset=utf8mb4',
     $config['db']['username'],
@@ -52,12 +66,12 @@ $months = $monthlyRepository->getLastMonths($config['report']['trendMonths']);
 try {
     $emailPlan = (new BrevoAccountClient($config['brevoApiKey']))->getEmailPlan();
 } catch (\Throwable $e) {
-    fwrite(STDERR, '[' . date('c') . '] Could not fetch Brevo account credits: ' . $e->getMessage() . "\n");
+    logMessage('Could not fetch Brevo account credits: ' . $e->getMessage());
     $emailPlan = null;
 }
 
 if ($emailPlan === null) {
-    fwrite(STDERR, '[' . date('c') . "] No email plan available; report will show credits as unavailable.\n");
+    logMessage('No email plan available; report will show credits as unavailable.');
 }
 
 $formatter = new ReportFormatter();
